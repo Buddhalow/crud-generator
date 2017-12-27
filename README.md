@@ -7,6 +7,8 @@
 
 This Generator package provides various generators like CRUD, API, Controller, Model, Migration, View and Vue files for your painless development of your applications.
 
+The vue generation code is based on this tutorial https://www.itechempires.com/2017/10/laravel-5-5-vuejs-2-0-crud-operations-application/
+
 ## Requirements
     Laravel >=5.1
     PHP >= 5.5.9

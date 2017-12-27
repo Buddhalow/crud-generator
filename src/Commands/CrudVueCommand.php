@@ -81,8 +81,15 @@ class CrudVueCommand extends Command
     protected $vars = [
         'formFields',
         'formFieldsHtml',
+        'modelFieldsDefaultHtml',
+        'postFieldsHtml',
+        'resetFieldsJavaScript',
+        'table',
+        'tableRowHtml',
+        'tableColumnsHtml',
         'varName',
         'crudName',
+        'resetHtml',
         'crudNameCap',
         'crudNameSingular',
         'primaryKey',
@@ -160,6 +167,12 @@ class CrudVueCommand extends Command
      * @var string
      */
     protected $modelName = '';
+    
+    /**
+     * Reset html
+     * @var string
+     **/
+    protected $resetHtml = '';
 
     /**
      * Name of the Model with first letter in capital
@@ -220,6 +233,18 @@ class CrudVueCommand extends Command
      * @var string
      */
     protected $formBodyHtml = '';
+
+    /**
+     * Table columns html
+     * @var string
+     **/
+    protected $tableColumnsHtml = '';
+    
+    /**
+     * Table row html
+     * @var string
+     **/
+    protected $tableRowHtml = '';
 
     /**
      * Html of vue to show.
@@ -297,7 +322,7 @@ class CrudVueCommand extends Command
         $vueDirectory = config('vue.paths')[0] . '/';
         if ($this->option('vue-path')) {
             $this->uservuePath = $this->option('vue-path');
-            $path = $vueDirectory . $this->uservuePath . '/' . $this->vueName . '/';
+            $path = $vueDirectory . $this->uservuePath;
         } else {
             $path = $vueDirectory . $this->vueName . '/';
         }
@@ -305,7 +330,7 @@ class CrudVueCommand extends Command
         $this->vueTemplateDir = isset($this->uservuePath)
             ? $this->uservuePath . '.' . $this->vueName
             : $this->vueName;
-        
+ 
         if (!File::isDirectory($path)) {
             File::makeDirectory($path, 0755, true);
         }
@@ -322,9 +347,12 @@ class CrudVueCommand extends Command
         if ($fields) {
             $x = 0;
             foreach ($fieldsArray as $item) {
-                $this->modelFieldsDefaultArray .= trim($itemArray[0]) . '"\'\'';
-                $this->postFieldsArray = 'this.' . $this->modelName . '.' . $itemArray[0];
                 $itemArray = explode('#', $item);
+                $this->modelFieldsDefaultArray[] = $this->createDefaultField($itemArray);
+                $this->postFieldsArray[] = $this->modelName . ': this.' . $this->modelName . '.' . $itemArray[0];
+                $this->tableColumnsHtml .= '<th>' . trim($itemArray[0]) . "</th>";
+                $this->tableRowHtml .= "<td>{{" . $this->modelName . "." . trim($itemArray[0]) . "}}</td>";
+                $this->resetHtml .= 'this.' . $this->modelName . '.' . trim($itemArray[0]) . ' = \'\';';
 
                 $this->formFields[$x]['name'] = trim($itemArray[0]);
                 $this->formFields[$x]['type'] = trim($itemArray[1]);
@@ -334,8 +362,8 @@ class CrudVueCommand extends Command
                 $x++;
             }
         }
-        $this->modelFieldsDefaultHtml = implode(",\n", $this->modelFieldsDefaultArray);
-        $this->postFieldsHtml = implode(",\n", $this->postFieldsArray);
+        $this->modelFieldsDefaultHtml = implode(",", $this->modelFieldsDefaultArray);
+        $this->postFieldsHtml = implode(",", $this->postFieldsArray);
 
         foreach ($this->formFields as $item) {
             $this->formFieldsHtml .= $this->createField($item);
@@ -363,7 +391,15 @@ class CrudVueCommand extends Command
 
         $this->info('vue created successfully.');
     }
-
+    private function createDefaultField($itemArray) {
+        $str = trim($itemArray[0]) . ': ';
+        if ($itemArray[1] == 'object') {
+            $str .= '{}';
+        } else {
+            $str .= "''";
+        }
+        return $str;
+    }
     /**
      * Default template configuration if not provided
      *
@@ -372,11 +408,7 @@ class CrudVueCommand extends Command
     private function defaultTemplating()
     {
         return [
-            'index' => ['formHeadingHtml', 'formBodyHtml', 'crudName', 'crudNameCap', 'modelName', 'vueName', 'routeGroup', 'primaryKey'],
-            'form' => ['formFieldsHtml'],
-            'create' => ['crudName', 'crudNameCap', 'modelName', 'modelNameCap', 'vueName', 'routeGroup', 'vueTemplateDir'],
-            'edit' => ['crudName', 'crudNameSingular', 'crudNameCap', 'modelNameCap', 'modelName', 'vueName', 'routeGroup', 'primaryKey', 'vueTemplateDir'],
-            'show' => ['formHeadingHtml', 'formBodyHtml', 'formBodyHtmlForShowvue', 'crudName', 'crudNameSingular', 'crudNameCap', 'modelName', 'vueName', 'routeGroup', 'primaryKey'],
+            'index' => ['formHeadingHtml', 'resetHtml', 'modelFieldsDefaultHtml', 'postFieldsHtml', 'formBodyHtml', 'crudName', 'crudNameCap', 'tableRowHtml', 'tableColumnsHtml', 'modelNameCap', 'modelName', 'vueName', 'routeGroup', 'primaryKey'],
         ];
     }
 
@@ -390,15 +422,17 @@ class CrudVueCommand extends Command
         $dynamicvueTemplate = config('crudgenerator.dynamic_vue_template')
             ? config('crudgenerator.dynamic_vue_template')
             : $this->defaultTemplating();
-
+    
         foreach ($dynamicvueTemplate as $name => $vars) {
-            $file = $this->vueDirectoryPath . $name . '.vue.stub';
-            $newFile = $path . $name . '.blade.php';
-            if (!File::copy($file, $newFile)) {
-                echo "failed to copy $file...\n";
-            } else {
-                $this->templateVars($newFile, $vars);
-                $this->userDefinedVars($newFile);
+            if ($name == 'index') {
+                $file = $this->vueDirectoryPath . $name . '.vue.stub';
+                $newFile = $path . DIRECTORY_SEPARATOR . $this->modelNameCap . '.vue';
+                if (!File::copy($file, $newFile)) {
+                    echo "failed to copy $file...\n";
+                } else {
+                    $this->templateVars($newFile, $vars);
+                    $this->userDefinedVars($newFile);
+                }
             }
         }
     }

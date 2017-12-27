@@ -95,6 +95,8 @@ class CrudViewCommand extends Command
         'formHeadingHtml',
         'formBodyHtml',
         'viewTemplateDir',
+        'tableRowHtml',
+        'tableColumnsHtml',
         'formBodyHtmlForShowView',
     ];
 
@@ -209,6 +211,12 @@ class CrudViewCommand extends Command
      * @var string
      */
     protected $formBodyHtml = '';
+    
+    /**
+     * JavaScript for resetting fields
+     * @var string
+     **/
+    protected $resetFieldsJavaScript = '';
 
     /**
      * Html of view to show.
@@ -223,6 +231,8 @@ class CrudViewCommand extends Command
      * @var array
      */
     protected $customData = [];
+    
+    
 
     /**
      * Template directory where views are generated
@@ -313,6 +323,7 @@ class CrudViewCommand extends Command
 
                 $this->formFields[$x]['name'] = trim($itemArray[0]);
                 $this->formFields[$x]['type'] = trim($itemArray[1]);
+                $this->resetFieldsJavaScript .= "this." . trim($itemArray[0]) . " = '';";
                 $this->formFields[$x]['required'] = preg_match('/' . $itemArray[0] . '/', $validations) ? true : false;
 
                 if ($this->formFields[$x]['type'] == 'select' && isset($itemArray[2])) {
