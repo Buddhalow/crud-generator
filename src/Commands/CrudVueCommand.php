@@ -5,37 +5,37 @@ namespace Appzcoder\CrudGenerator\Commands;
 use File;
 use Illuminate\Console\Command;
 
-class CrudViewCommand extends Command
+class CrudVueCommand extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'crud:view
+    protected $signature = 'crud:vue
                             {name : The name of the Crud.}
                             {--fields= : The field names for the form.}
-                            {--view-path= : The name of the view path.}
+                            {--vue-path= : The name of the vue path.}
                             {--route-group= : Prefix of the route group.}
                             {--pk=id : The name of the primary key.}
                             {--validations= : Validation rules for the fields.}
                             {--form-helper=html : Helper for the form.}
                             {--custom-data= : Some additional values to use in the crud.}
-                            {--localize=no : Localize the view? yes|no.}';
+                            {--localize=no : Localize the vue? yes|no.}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Create views for the Crud.';
+    protected $description = 'Create vues for the Crud.';
 
     /**
-     * View Directory Path.
+     * vue Directory Path.
      *
      * @var string
      */
-    protected $viewDirectoryPath;
+    protected $vueDirectoryPath;
 
     /**
      *  Form field types collection.
@@ -88,14 +88,14 @@ class CrudViewCommand extends Command
         'primaryKey',
         'modelName',
         'modelNameCap',
-        'viewName',
+        'vueName',
         'routePrefix',
         'routePrefixCap',
         'routeGroup',
         'formHeadingHtml',
         'formBodyHtml',
-        'viewTemplateDir',
-        'formBodyHtmlForShowView',
+        'vueTemplateDir',
+        'formBodyHtmlForShowvue',
     ];
 
     /**
@@ -167,14 +167,25 @@ class CrudViewCommand extends Command
      * @var string
      */
     protected $modelNameCap = '';
-
+    
     /**
-     * Name of the View Dir.
+     * Default model fields in js templates
+     * @var string
+     **/
+    protected $modelFieldsDefaultHtml = '';
+    /**
+     * Name of the vue Dir.
      *
      * @var string
      */
-    protected $viewName = '';
-
+    protected $vueName = '';
+    
+    /**
+     * Template for posting fields in ajax
+     * @var string
+     **/
+    protected $postFieldsHtml = '';
+    
     /**
      * Prefix of the route
      *
@@ -211,11 +222,11 @@ class CrudViewCommand extends Command
     protected $formBodyHtml = '';
 
     /**
-     * Html of view to show.
+     * Html of vue to show.
      *
      * @var string
      */
-    protected $formBodyHtmlForShowView = '';
+    protected $formBodyHtmlForShowvue = '';
 
     /**
      * User defined values
@@ -225,11 +236,11 @@ class CrudViewCommand extends Command
     protected $customData = [];
 
     /**
-     * Template directory where views are generated
+     * Template directory where vues are generated
      *
      * @var string
      */
-    protected $viewTemplateDir = '';
+    protected $vueTemplateDir = '';
 
     /**
      * Delimiter used for replacing values
@@ -246,8 +257,8 @@ class CrudViewCommand extends Command
     {
         parent::__construct();
 
-        if (config('crudgenerator.view_columns_number')) {
-            $this->defaultColumnsToShow = config('crudgenerator.view_columns_number');
+        if (config('crudgenerator.vue_columns_number')) {
+            $this->defaultColumnsToShow = config('crudgenerator.vue_columns_number');
         }
 
         $this->delimiter = config('crudgenerator.custom_delimiter')
@@ -263,10 +274,10 @@ class CrudViewCommand extends Command
     public function handle()
     {
         $formHelper = $this->option('form-helper');
-        $this->viewDirectoryPath = config('crudgenerator.custom_template')
+        $this->vueDirectoryPath = config('crudgenerator.custom_template')
             ? config('crudgenerator.path') . 'views/' . $formHelper . '/'
             : __DIR__ . '/../stubs/views/' . $formHelper . '/';
-
+       
 
         $this->crudName = strtolower($this->argument('name'));
         $this->varName = lcfirst($this->argument('name'));
@@ -281,20 +292,20 @@ class CrudViewCommand extends Command
             : $this->option('route-group');
         $this->routePrefix = ($this->option('route-group')) ? $this->option('route-group') : '';
         $this->routePrefixCap = ucfirst($this->routePrefix);
-        $this->viewName = snake_case($this->argument('name'), '-');
+        $this->vueName = snake_case($this->argument('name'), '-');
 
-        $viewDirectory = config('view.paths')[0] . '/';
-        if ($this->option('view-path')) {
-            $this->userViewPath = $this->option('view-path');
-            $path = $viewDirectory . $this->userViewPath . '/' . $this->viewName . '/';
+        $vueDirectory = config('vue.paths')[0] . '/';
+        if ($this->option('vue-path')) {
+            $this->uservuePath = $this->option('vue-path');
+            $path = $vueDirectory . $this->uservuePath . '/' . $this->vueName . '/';
         } else {
-            $path = $viewDirectory . $this->viewName . '/';
+            $path = $vueDirectory . $this->vueName . '/';
         }
 
-        $this->viewTemplateDir = isset($this->userViewPath)
-            ? $this->userViewPath . '.' . $this->viewName
-            : $this->viewName;
-
+        $this->vueTemplateDir = isset($this->uservuePath)
+            ? $this->uservuePath . '.' . $this->vueName
+            : $this->vueName;
+        
         if (!File::isDirectory($path)) {
             File::makeDirectory($path, 0755, true);
         }
@@ -303,28 +314,28 @@ class CrudViewCommand extends Command
         $fieldsArray = explode(';', $fields);
 
         $this->formFields = [];
+        $this->modelFieldsDefaultArray = [];
+        $this->postFieldsArray = [];
 
         $validations = $this->option('validations');
 
         if ($fields) {
             $x = 0;
             foreach ($fieldsArray as $item) {
+                $this->modelFieldsDefaultArray .= trim($itemArray[0]) . '"\'\'';
+                $this->postFieldsArray = 'this.' . $this->modelName . '.' . $itemArray[0];
                 $itemArray = explode('#', $item);
 
                 $this->formFields[$x]['name'] = trim($itemArray[0]);
                 $this->formFields[$x]['type'] = trim($itemArray[1]);
                 $this->formFields[$x]['required'] = preg_match('/' . $itemArray[0] . '/', $validations) ? true : false;
 
-                if ($this->formFields[$x]['type'] == 'select' && isset($itemArray[2])) {
-                    $options = trim($itemArray[2]);
-                    $options = str_replace('options=', '', $options);
-
-                    $this->formFields[$x]['options'] = $options;
-                }
 
                 $x++;
             }
         }
+        $this->modelFieldsDefaultHtml = implode(",\n", $this->modelFieldsDefaultArray);
+        $this->postFieldsHtml = implode(",\n", $this->postFieldsArray);
 
         foreach ($this->formFields as $item) {
             $this->formFieldsHtml .= $this->createField($item);
@@ -343,14 +354,14 @@ class CrudViewCommand extends Command
             }
             $this->formHeadingHtml .= '<th>' . $label . '</th>';
             $this->formBodyHtml .= '<td>{{ $item->' . $field . ' }}</td>';
-            $this->formBodyHtmlForShowView .= '<tr><th> ' . $label . ' </th><td> {{ $%%crudNameSingular%%->' . $field . ' }} </td></tr>';
+            $this->formBodyHtmlForShowvue .= '<tr><th> ' . $label . ' </th><td> {{ $%%crudNameSingular%%->' . $field . ' }} </td></tr>';
 
             $i++;
         }
 
         $this->templateStubs($path);
 
-        $this->info('View created successfully.');
+        $this->info('vue created successfully.');
     }
 
     /**
@@ -361,11 +372,11 @@ class CrudViewCommand extends Command
     private function defaultTemplating()
     {
         return [
-            'index' => ['formHeadingHtml', 'formBodyHtml', 'crudName', 'crudNameCap', 'modelName', 'viewName', 'routeGroup', 'primaryKey'],
+            'index' => ['formHeadingHtml', 'formBodyHtml', 'crudName', 'crudNameCap', 'modelName', 'vueName', 'routeGroup', 'primaryKey'],
             'form' => ['formFieldsHtml'],
-            'create' => ['crudName', 'crudNameCap', 'modelName', 'modelNameCap', 'viewName', 'routeGroup', 'viewTemplateDir'],
-            'edit' => ['crudName', 'crudNameSingular', 'crudNameCap', 'modelNameCap', 'modelName', 'viewName', 'routeGroup', 'primaryKey', 'viewTemplateDir'],
-            'show' => ['formHeadingHtml', 'formBodyHtml', 'formBodyHtmlForShowView', 'crudName', 'crudNameSingular', 'crudNameCap', 'modelName', 'viewName', 'routeGroup', 'primaryKey'],
+            'create' => ['crudName', 'crudNameCap', 'modelName', 'modelNameCap', 'vueName', 'routeGroup', 'vueTemplateDir'],
+            'edit' => ['crudName', 'crudNameSingular', 'crudNameCap', 'modelNameCap', 'modelName', 'vueName', 'routeGroup', 'primaryKey', 'vueTemplateDir'],
+            'show' => ['formHeadingHtml', 'formBodyHtml', 'formBodyHtmlForShowvue', 'crudName', 'crudNameSingular', 'crudNameCap', 'modelName', 'vueName', 'routeGroup', 'primaryKey'],
         ];
     }
 
@@ -376,12 +387,12 @@ class CrudViewCommand extends Command
      */
     protected function templateStubs($path)
     {
-        $dynamicViewTemplate = config('crudgenerator.dynamic_view_template')
-            ? config('crudgenerator.dynamic_view_template')
+        $dynamicvueTemplate = config('crudgenerator.dynamic_vue_template')
+            ? config('crudgenerator.dynamic_vue_template')
             : $this->defaultTemplating();
 
-        foreach ($dynamicViewTemplate as $name => $vars) {
-            $file = $this->viewDirectoryPath . $name . '.blade.stub';
+        foreach ($dynamicvueTemplate as $name => $vars) {
+            $file = $this->vueDirectoryPath . $name . '.vue.stub';
             $newFile = $path . $name . '.blade.php';
             if (!File::copy($file, $newFile)) {
                 echo "failed to copy $file...\n";
@@ -440,7 +451,7 @@ class CrudViewCommand extends Command
      */
     protected function wrapField($item, $field)
     {
-        $formGroup = File::get($this->viewDirectoryPath . 'form-fields/wrap-field.blade.stub');
+        $formGroup = File::get($this->vueDirectoryPath . 'form-fields/wrap-field.vue.stub');
 
         $labelText = "'" . ucwords(strtolower(str_replace('_', ' ', $item['name']))) . "'";
 
@@ -492,7 +503,7 @@ class CrudViewCommand extends Command
 
         $required = $item['required'] ? 'required' : '';
 
-        $markup = File::get($this->viewDirectoryPath . 'form-fields/form-field.blade.stub');
+        $markup = File::get($this->vueDirectoryPath . 'form-fields/form-field.vue.stub');
         $markup = str_replace($start . 'required' . $end, $required, $markup);
         $markup = str_replace($start . 'fieldType' . $end, $this->typeLookup[$item['type']], $markup);
         $markup = str_replace($start . 'itemName' . $end, $item['name'], $markup);
@@ -518,7 +529,7 @@ class CrudViewCommand extends Command
 
         $required = $item['required'] ? 'required' : '';
 
-        $markup = File::get($this->viewDirectoryPath . 'form-fields/password-field.blade.stub');
+        $markup = File::get($this->vueDirectoryPath . 'form-fields/password-field.vue.stub');
         $markup = str_replace($start . 'required' . $end, $required, $markup);
         $markup = str_replace($start . 'itemName' . $end, $item['name'], $markup);
         $markup = str_replace($start . 'crudNameSingular' . $end, $this->crudNameSingular, $markup);
@@ -543,7 +554,7 @@ class CrudViewCommand extends Command
 
         $required = $item['required'] ? 'required' : '';
 
-        $markup = File::get($this->viewDirectoryPath . 'form-fields/input-field.blade.stub');
+        $markup = File::get($this->vueDirectoryPath . 'form-fields/input-field.vue.stub');
         $markup = str_replace($start . 'required' . $end, $required, $markup);
         $markup = str_replace($start . 'fieldType' . $end, $this->typeLookup[$item['type']], $markup);
         $markup = str_replace($start . 'itemName' . $end, $item['name'], $markup);
@@ -567,7 +578,7 @@ class CrudViewCommand extends Command
         $start = $this->delimiter[0];
         $end = $this->delimiter[1];
 
-        $markup = File::get($this->viewDirectoryPath . 'form-fields/radio-field.blade.stub');
+        $markup = File::get($this->vueDirectoryPath . 'form-fields/radio-field.vue.stub');
         $markup = str_replace($start . 'crudNameSingular' . $end, $this->crudNameSingular, $markup);
 
         return $this->wrapField($item, sprintf($markup, $item['name']));
@@ -587,7 +598,7 @@ class CrudViewCommand extends Command
 
         $required = $item['required'] ? 'required' : '';
 
-        $markup = File::get($this->viewDirectoryPath . 'form-fields/textarea-field.blade.stub');
+        $markup = File::get($this->vueDirectoryPath . 'form-fields/textarea-field.vue.stub');
         $markup = str_replace($start . 'required' . $end, $required, $markup);
         $markup = str_replace($start . 'fieldType' . $end, $this->typeLookup[$item['type']], $markup);
         $markup = str_replace($start . 'itemName' . $end, $item['name'], $markup);
@@ -613,7 +624,7 @@ class CrudViewCommand extends Command
 
         $required = $item['required'] ? 'required' : '';
 
-        $markup = File::get($this->viewDirectoryPath . 'form-fields/select-field.blade.stub');
+        $markup = File::get($this->vueDirectoryPath . 'form-fields/select-field.vue.stub');
         $markup = str_replace($start . 'required' . $end, $required, $markup);
         $markup = str_replace($start . 'options' . $end, $item['options'], $markup);
         $markup = str_replace($start . 'itemName' . $end, $item['name'], $markup);

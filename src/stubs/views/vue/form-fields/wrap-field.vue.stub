@@ -1,0 +1,7 @@
+<div class="form-group">
+    <label for="%1$s" class="col-md-4 control-label">{{ %2$s }}</label>
+    <div class="col-md-6">
+        %3$s
+        <p v-if="error" class="help-block">:message</p>
+    </div>
+</div>

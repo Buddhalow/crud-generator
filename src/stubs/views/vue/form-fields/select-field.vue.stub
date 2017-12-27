@@ -1,0 +1,6 @@
+<select v-model="$%%crudNameSingular%%.%%itemName%%" class="form-control" %%required%%>
+    <option disabled>Please select</option>
+    <option v-for="option in options" v-bind:value="option.value">
+        {{ option.text }}
+      </option>
+</select>

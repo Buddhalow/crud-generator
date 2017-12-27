@@ -1,0 +1,1 @@
+<textarea class="form-control" rows="5" v-model="%%crudNameSingular%%.%%itemName%" name="%%itemName%%" type="%%fieldType%%"%%required%%></textarea>

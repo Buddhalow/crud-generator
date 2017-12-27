@@ -5,7 +5,7 @@
 [![Latest Stable Version](https://poser.pugx.org/appzcoder/crud-generator/v/stable.svg)](https://packagist.org/packages/appzcoder/crud-generator)
 [![License](https://poser.pugx.org/appzcoder/crud-generator/license.svg)](https://packagist.org/packages/appzcoder/crud-generator)
 
-This Generator package provides various generators like CRUD, API, Controller, Model, Migration, View for your painless development of your applications.
+This Generator package provides various generators like CRUD, API, Controller, Model, Migration, View and Vue files for your painless development of your applications.
 
 ## Requirements
     Laravel >=5.1
@@ -28,6 +28,10 @@ Go through to the [detailed documentation](doc#readme)
 ## Author
 
 [Sohel Amin](http://sohelamin.com) :email: [Email Me](mailto:sohelamincse@gmail.com)
+
+## Contributors
+
+[Alexander Forselius](http://buddhalow.com) :email [Email me](mailto:drsounds@gmail.com)
 
 ## License
 

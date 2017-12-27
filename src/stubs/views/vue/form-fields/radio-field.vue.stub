@@ -1,0 +1,3 @@
+<div class="checkbox">
+    <label><input name="%1$s" type="checkbox" v-model="%%crudNameSingular%%.%1$s"> No</label>
+</div>
