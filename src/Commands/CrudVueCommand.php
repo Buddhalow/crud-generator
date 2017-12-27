@@ -362,6 +362,8 @@ class CrudVueCommand extends Command
                 $x++;
             }
         }
+        $this->tableColumnsHtml .= "<th>Actions</th>";
+        $this->tableRowHtml .= '<td><div class="btn-group"><button @click="initUpdate(index)" class="btn btn-success">Edit</button><button @click="delete' . $this->modelNameCap . '(index)" class="btn btn-danger">Delete</button></div></td>';
         $this->modelFieldsDefaultHtml = implode(",", $this->modelFieldsDefaultArray);
         $this->postFieldsHtml = implode(",", $this->postFieldsArray);
 

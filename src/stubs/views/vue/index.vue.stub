@@ -4,13 +4,14 @@
             <div class="col-md-12">
                 <div class="panel panel-default">
                     <div class="panel-heading">
-                        <button @click="initAdd%%modelNameCap%%()" class="btn btn-primary btn-xs pull-right">
-                            + Add New %%modelNameCap%%
-                        </button>
+                        
                         My %%modelNameCap%%
                     </div>
  
                     <div class="panel-body">
+                        <button @click="initAdd%%modelNameCap%%()" class="btn btn-primary  pull-right">
+                            + Add New %%modelNameCap%%
+                        </button>
                         <table class="table table-bordered table-striped table-responsive" v-if="%%modelName%%s.length > 0">
                             <thead>
                                 <tr>
@@ -79,16 +80,14 @@
             save%%modelNameCap%%()
             {
                 var savePromise = null;
-                var data = {
-                
-                    %%postFieldsHtml%%
-                        
-                };
+              
                 var id = this.%%modelName%% != null && this.%%modelName%%.id != null ? this.%%modelName%%.id : null;
                 if (id) {
-                    savePromise = axios.post('/api/%%modelName%%s', data);
-                }else {
-                    savePromise = axios.patch('/api/%%modelName%%s/' + id, data);
+                    savePromise = axios.put('/api/%%modelName%%s/' + id, this.%%modelName%%);
+                  
+                  
+                } else {
+                    savePromise = axios.post('/api/%%modelName%%s', this.%%modelName%%);
                 }
                 savePromise.then(response => {
      
@@ -115,6 +114,22 @@
                     .then(response => {
                         this.%%modelName%%s = response.data.data;
                     });
+            },
+            delete%%modelNameCap%%(index)
+            {
+                let conf = confirm("Do you ready want to delete this %%modelName%%?");
+                if (conf === true) {
+
+                    axios.delete('/%%modelName%%s/' + this.%%modelName%%s[index].id)
+                        .then(response => {
+
+                            this.%%modelName%%s.splice(index, 1);
+
+                        })
+                        .catch(error => {
+
+                        });
+                }
             },
             initUpdate(index)
             {
