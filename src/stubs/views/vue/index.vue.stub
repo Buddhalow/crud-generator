@@ -4,7 +4,7 @@
             <div class="col-md-12">
                 <div class="panel panel-default">
                     <div class="panel-heading">
-                        <button @click="initAddTask()" class="btn btn-primary btn-xs pull-right">
+                        <button @click="initAdd%%modelNameCap%%()" class="btn btn-primary btn-xs pull-right">
                             + Add New %%modelNameCap%%
                         </button>
                         My %%modelNameCap%%
@@ -14,9 +14,7 @@
                         <table class="table table-bordered table-striped table-responsive" v-if="%%modelName%%s.length > 0">
                             <thead>
                                 <tr>
-                                    <th>
-                                        %%tableColumnsHtml%%
-                                    </th>
+                                    %%tableColumnsHtml%%
                                 </tr>
                             </thead>
                             <tbody>
@@ -30,7 +28,7 @@
             </div>
         </div>
  
-        <div class="modal fade" tabindex="-1" role="dialog" id="edit_task_model">
+        <div class="modal fade" tabindex="-1" role="dialog" id="edit_%%modelName%%_model">
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
@@ -45,11 +43,11 @@
                                 <li v-for="error in errors">{{ error }}</li>
                             </ul>
                         </div>
-                        %%formFields%%
+                        %%formFieldsHtml%%
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                        <button type="button" @click="saveTask" class="btn btn-primary">Submit</button>
+                        <button type="button" @click="save%%modelNameCap%%" class="btn btn-primary">Submit</button>
                     </div>
                 </div><!-- /.modal-content -->
             </div><!-- /.modal-dialog -->
@@ -69,13 +67,16 @@
                 %%modelName%%s: []
             }
         },
+        mounted() {
+            this.read%%modelNameCap%%s();
+        },
         methods: {
-            initAdd%%modelName%%()
+            initAdd%%modelNameCap%%()
             {
                 this.errors = [];
                 $("#edit_%%modelName%%_model").modal("show");
             },
-            save%%modelName%%()
+            save%%modelNameCap%%()
             {
                 var savePromise = null;
                 var data = {
@@ -85,9 +86,9 @@
                 };
                 var id = this.%%modelName%% != null && this.%%modelName%%.id != null ? this.%%modelName%%.id : null;
                 if (id) {
-                    savePromise = axios.post('/%%modelName%%', data);
+                    savePromise = axios.post('/api/%%modelName%%s', data);
                 }else {
-                    saveProimise = axios.patch('/%%modelName%%/' + id, data);
+                    savePromise = axios.patch('/api/%%modelName%%s/' + id, data);
                 }
                 savePromise.then(response => {
      
@@ -108,23 +109,22 @@
                 });
                 
             },
+            read%%modelNameCap%%s()
+            {
+                axios.get('/api/%%modelName%%s')
+                    .then(response => {
+                        this.%%modelName%%s = response.data.data;
+                    });
+            },
             initUpdate(index)
             {
                 this.errors = [];
-                $('#edit_%%modelName%%').modal("show");
+                $('#edit_%%modelName%%_model').modal("show");
                 this.%%modelName%% = this.%%modelName%%s[index];
             },
             reset()
             {
                 %%resetHtml%%
-            },
-            read%%modelNameCap%%()
-            {
-                axios.get('/%%modelName%%')
-                    .then(response => {
-                        this.%%modelName%%s = response.data.%%modelName%%s;
- 
-                    });
             }
         }
     }

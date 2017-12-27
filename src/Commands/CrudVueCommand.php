@@ -382,7 +382,7 @@ class CrudVueCommand extends Command
             }
             $this->formHeadingHtml .= '<th>' . $label . '</th>';
             $this->formBodyHtml .= '<td>{{ $item->' . $field . ' }}</td>';
-            $this->formBodyHtmlForShowvue .= '<tr><th> ' . $label . ' </th><td> {{ $%%crudNameSingular%%->' . $field . ' }} </td></tr>';
+            $this->formBodyHtmlForShowvue .= '<tr><th> ' . $label . ' </th><td> {{ %%crudNameSingular%%->' . $field . ' }} </td></tr>';
 
             $i++;
         }
@@ -408,7 +408,7 @@ class CrudVueCommand extends Command
     private function defaultTemplating()
     {
         return [
-            'index' => ['formHeadingHtml', 'resetHtml', 'modelFieldsDefaultHtml', 'postFieldsHtml', 'formBodyHtml', 'crudName', 'crudNameCap', 'tableRowHtml', 'tableColumnsHtml', 'modelNameCap', 'modelName', 'vueName', 'routeGroup', 'primaryKey'],
+            'index' => ['formHeadingHtml', 'formFieldsHtml', 'resetHtml', 'modelFieldsDefaultHtml', 'postFieldsHtml', 'formBodyHtml', 'crudName', 'crudNameCap', 'tableRowHtml', 'tableColumnsHtml', 'modelNameCap', 'modelName', 'vueName', 'routeGroup', 'primaryKey'],
         ];
     }
 

@@ -1,1 +1,1 @@
-<input class="form-control" name="%%itemName%%" type="%%fieldType%%" v-model="$%%crudNameSingular%%.%%itemName%%" %%required%%>
+<input class="form-control" name="%%itemName%%" type="%%fieldType%%" v-model="%%crudNameSingular%%.%%itemName%%" %%required%%>
